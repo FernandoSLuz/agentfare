@@ -1,0 +1,100 @@
+# AgentFare weekly report: {{ v.week }}
+
+{{ v.range }}{% if v.state != "empty" %}. {{ v.counts }}{% endif %}.
+
+**{{ v.message }}**
+{% for hint in v.hints %}
+
+{{ hint }}
+{% endfor %}
+{% if v.change %}
+
+Spend is {{ v.change }}.
+{% elif v.ongoing %}
+
+Week in progress, so there is no comparison with the week before yet.
+{% endif %}
+{% if v.compared %}
+
+| | Spend |
+|---|---:|
+| Actual | {{ v.actual }} |
+| With the router | {{ v.router }} |
+{% if v.state == "savings" %}
+| Saved | {{ v.saved }} ({{ v.saved_pct }}) |
+{% endif %}
+{% if v.compared_partly %}
+
+{{ v.compared_partly }}
+{% endif %}
+{% endif %}
+{% if v.warning %}
+
+> **Warning:** {{ v.warning.head }}.
+>
+{% for w in v.warning.lines %}
+> - {% if w.tokens %}{{ w.tokens }} tokens: {% endif %}{{ w.model | md }}{{ w.rest }}
+{% endfor %}
+{% endif %}
+{% if v.state == "savings" or v.state == "none" or v.state == "unpriced" %}
+
+## Spend by model
+
+| Model | Sessions | Spend | Share |
+|---|---:|---:|---:|
+{% for m in v.models %}
+| {{ m.label | md_cell }} | {{ m.count }} | {{ m.cost }} | {{ m.share }} |
+{% endfor %}
+
+## By agent
+
+| Agent | Sessions | Spend | Share |
+|---|---:|---:|---:|
+{% for a in v.agents %}
+| {{ a.label | md_cell }} | {{ a.count }} | {{ a.cost }} | {{ a.share }} |
+{% endfor %}
+
+## By day
+
+| Day | Sessions | Spend |
+|---|---:|---:|
+{% for d in v.days %}
+| {{ d.label }} {{ d.date }} | {{ d.count }} | {{ d.cost or "-" }} |
+{% endfor %}
+
+## Session mix
+
+Sessions by size (tokens, tool calls, files, retries and active time), not by difficulty.
+
+| Tier | Sessions | Spend |
+|---|---:|---:|
+{% for t in v.tiers %}
+| {{ t.label }} | {{ t.count }} | {{ t.cost }} |
+{% endfor %}
+{% endif %}
+{% if v.state == "savings" %}
+
+## Biggest savings
+
+{% if v.top %}
+| Session | Agent | Project | Model | Suggested | Actual | Router | Saved |
+|---|---|---|---|---|---:|---:|---:|
+{% for s in v.top %}
+| {{ s.id | md_code }} | {{ s.agent }} | {{ s.project | md_cell }} | {{ s.model | md_cell }} | {{ s.to | md_cell }} | {{ s.actual }} | {{ s.router }} | {{ s.saved }} ({{ s.ratio }} cheaper) |
+{% endfor %}
+{% else %}
+No session with a prompt had an advised switch: the saving comes from sub-agent and background sessions, which are not listed.
+{% endif %}
+{% endif %}
+{% if v.state != "empty" %}
+
+## Notes
+
+{% for note in v.notes %}
+- {{ note }}
+{% endfor %}
+{% endif %}
+
+---
+
+Generated {{ v.generated }} by agentfare {{ v.version }}. Local-first: no account, no cloud, no prompts stored.
