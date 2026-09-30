@@ -1,0 +1,96 @@
+# Continuous integration: install the package the way a user does, check the entry point, run the whole test suite.
+#
+# Actions are pinned to the full commit SHA of a release, with the release in a comment (a tag can be moved, a SHA cannot).
+# Looked up on 2026-09-30 with `gh api repos/<owner>/<repo>/git/ref/tags/<tag>` (both tags are plain commits, not annotated):
+#   actions/checkout      v7.0.1 -> 3d3c42e5aac5ba805825da76410c181273ba90b1
+#   actions/setup-python  v7.0.0 -> 5fda3b95a4ea91299a34e894583c3862153e4b97
+# To update one, look the new tag up the same way and change the SHA and the comment together.
+# Python 3.11 is the floor (pyproject.toml requires-python); 3.14 is what the author develops on.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[dev]'
+      - name: agentfare --help
+        run: agentfare --help
+      - name: pytest
+        run: pytest
+
+  # The floors in pyproject.toml are promises: this job installs exactly those versions (constraints-min.txt) and runs the
+  # same suite, so a release that quietly needs a newer typer, rich, PyYAML or Jinja2 fails here and not on a user's machine.
+  oldest-dependencies:
+    name: Oldest supported dependencies (Python 3.11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - name: Install the oldest versions
+        run: |
+          python -m pip install --upgrade pip
+          pip install -c constraints-min.txt -e '.[dev]'
+      - name: Versions in use
+        run: pip freeze | grep -iE '^(typer|rich|pyyaml|jinja2|click|markupsafe)=='
+      - name: agentfare --help
+        run: agentfare --help
+      - name: pytest
+        run: pytest
+
+  # What gets published is the sdist and the wheel, not the git tree: build both, then run the suite from the unpacked sdist.
+  package:
+    name: Build the sdist and the wheel
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Build
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+      - name: Test the unpacked sdist
+        run: |
+          mkdir "$RUNNER_TEMP/sdist"
+          tar -xzf dist/agentfare-*.tar.gz -C "$RUNNER_TEMP/sdist"
+          cd "$RUNNER_TEMP/sdist"/agentfare-*
+          python -m pip install -e '.[dev]'
+          agentfare --help
+          pytest

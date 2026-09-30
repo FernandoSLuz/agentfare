@@ -1,0 +1,9 @@
+# The oldest versions agentfare supports: the floors in pyproject.toml, pinned exactly. CI installs them on Python 3.11
+#   pip install -c constraints-min.txt -e '.[dev]'
+# and runs the whole test suite (job "oldest-dependencies" in .github/workflows/ci.yml).
+# How they were found (2026-09-30): each package was lowered alone, then all together, with the full suite on Python 3.11.
+typer==0.24.0
+click==8.2.1  # the click that typer 0.24 requires at least (8.2.0 and older make the suite fail)
+rich==14.3.0
+PyYAML==6.0
+Jinja2==3.0.0

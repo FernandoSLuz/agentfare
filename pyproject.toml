@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentfare"
+version = "0.1.0"
+description = "Local-first cost router for AI coding agents: reads your Claude Code, Codex CLI and Gemini CLI logs, prices them, and tells you where a cheaper model would have done the job."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Fernando Silva da Luz" }]
+keywords = ["ai", "cost", "llm", "claude-code", "codex", "gemini", "router", "cli"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development",
+]
+# Floors: the oldest versions the whole test suite passes with (CI job "oldest-dependencies" installs exactly these from
+# constraints-min.txt on Python 3.11). Upper bounds only where a release is known to break.
+dependencies = [
+  # 0.24 is the first typer that itself requires click>=8.2.1; with an older click the suite (error texts, prompts) fails, and
+  # 0.12 to 0.15 fail with the click that pip resolves today. 0.26.0 ignores the environment variable of an option
+  # (AGENTFARE_CONFIG), which 0.26.1 fixed.
+  "typer>=0.24,!=0.26.0",  # 0.26.0: options ignore their environment variable
+  "rich>=14.3",  # rich 14.2 and older lay out table columns one space wider, which the tests pin
+  "PyYAML>=6.0",  # 5.4 cannot be built on Python 3.11 (Cython 3)
+  "Jinja2>=3.0",  # 2.x needs a MarkupSafe older than 2.1
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.urls]
+Homepage = "https://github.com/FernandoSLuz/agentfare"
+Source = "https://github.com/FernandoSLuz/agentfare"
+Issues = "https://github.com/FernandoSLuz/agentfare/issues"
+
+[project.scripts]
+agentfare = "agentfare.cli:_entry"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agentfare = ["data/*.yaml", "templates/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

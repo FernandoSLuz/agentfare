@@ -1,0 +1,12 @@
+# What goes into the source distribution besides the package itself (setuptools adds src/ and pyproject.toml on its own).
+# The sdist must be enough to run the whole test suite, offline, after `pip install -e .`: the tests read the README, the docs,
+# the demo script and the fixtures, and some of them read the CI workflow and the constraints file.
+include README.md LICENSE CONTRIBUTING.md demo.tape constraints-min.txt pricing.yaml
+graft docs
+graft scripts
+graft tests
+graft .github
+include src/agentfare/data/pricing.yaml
+recursive-include src/agentfare/templates *
+global-exclude __pycache__ *.py[cod] *.egg-info .DS_Store
+prune tests/.pytest_cache
