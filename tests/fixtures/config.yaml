@@ -1,0 +1,8 @@
+# Config for the synthetic sample logs shipped with the tests (also used by the README demo).
+#   AGENTFARE_HOME=$(mktemp -d) AGENTFARE_NOW=2026-09-30T12:00:00Z agentfare --config tests/fixtures/config.yaml summary
+# Relative paths are resolved against this file's directory.
+timezone: UTC
+sources:
+  claude: [claude/projects]
+  codex: [codex/sessions]
+  gemini: [gemini/tmp]
