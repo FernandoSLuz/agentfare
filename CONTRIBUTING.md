@@ -102,7 +102,7 @@ python scripts/make_assets.py --only init doctor  # only these
 python scripts/make_assets.py --list              # the names and the files they make
 ```
 
-The script needs Chromium, Pillow, ffmpeg, `rsvg-convert` and `uv`, none of which is a dependency of AgentFare. Run it with a Python that has Pillow and can import `agentfare`. A new screenshot is one line in the `SHOTS` table at the top of the script. [docs/DEMO.md](docs/DEMO.md) has the details, and `python scripts/make_demo_data.py` rewrites the demo data itself.
+The script needs Chromium, Pillow, ffmpeg, `rsvg-convert` and `uv`, none of which is a dependency of AgentFare. Run it with a Python that has Pillow and can import `agentfare`. The tests that draw images with a real browser are skipped unless you set `AGENTFARE_TEST_ASSETS=1`. A new screenshot is one line in the `SHOTS` table at the top of the script. [docs/DEMO.md](docs/DEMO.md) has the details, and `python scripts/make_demo_data.py` rewrites the demo data itself.
 
 ## Releasing
 

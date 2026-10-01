@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import importlib.util
 import re
+import os
 import shutil
 import struct
 import sys
@@ -236,8 +237,11 @@ class TestScript:
 
 
 # ---- building them (when the tools are installed) -------------------------------------------------------------------------------
-needs_chromium = pytest.mark.skipif(not any(shutil.which(b) for b in ("chromium", "chromium-browser", "google-chrome", "google-chrome-stable")),
-                                    reason="needs Chromium")
+# Drawing an image runs a real browser, which is slow and depends on the machine (on a CI runner /usr/bin/chromium can be a snap
+# stub that never answers). So these tests are opt-in: AGENTFARE_TEST_ASSETS=1 on a machine with Chromium, as CONTRIBUTING says.
+needs_chromium = pytest.mark.skipif(
+    not os.environ.get("AGENTFARE_TEST_ASSETS") or not any(shutil.which(b) for b in ("chromium", "chromium-browser", "google-chrome", "google-chrome-stable")),
+    reason="set AGENTFARE_TEST_ASSETS=1 on a machine with Chromium to build images in the tests")
 
 
 @pytest.fixture
