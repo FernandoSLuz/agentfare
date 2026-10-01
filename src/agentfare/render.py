@@ -163,11 +163,13 @@ def _project_hint(st: AppState, project: str) -> str:
 def empty_hints(st: AppState, filters: Filters) -> list[str]:
     """What to tell a person whose view of the data came out empty, the same for every command that has one.
 
-    Setup advice (``agentfare ingest``, ``agentfare config``) only when the database holds no session at all. Otherwise the
+    Setup advice (``agentfare ingest``, ``agentfare config``, and for a new user ``agentfare init``, ``agentfare doctor`` and
+    ``agentfare demo``) only when the database holds no session at all. Otherwise the
     data is there and the view missed it: the dates it does cover, or, for a name that matches nothing, the names that do."""
     store = st.store()
     if store.count() == 0:
-        return ["the database has no sessions at all: run agentfare ingest, and check the log sources with agentfare config"]
+        return ["the database has no sessions at all: run agentfare ingest, and check the log sources with agentfare config",
+                "new here? agentfare init sets everything up, agentfare doctor checks the setup, and agentfare demo shows the tool on sample sessions"]
     if filters.project and store.usage_range(project=filters.project) is None:  # the name matched nothing, not the period
         return [f"no project is called {filters.project!r}; {_project_hint(st, filters.project)}"]
     if filters.agent and store.usage_range(agent=filters.agent) is None:

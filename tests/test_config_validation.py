@@ -441,5 +441,7 @@ class TestPackagingMetadata:
         assert "setuptools>=77" in project["build-system"]["requires"]
 
     def test_the_packaged_data_is_listed(self, project: dict[str, Any]) -> None:
-        assert project["tool"]["setuptools"]["package-data"]["agentfare"] == ["data/*.yaml", "templates/*"]
+        # the demo logs of `agentfare demo` ship with the package; a glob skips a dot file, so .project_root has a pattern of its own
+        assert project["tool"]["setuptools"]["package-data"]["agentfare"] == [
+            "data/*.yaml", "templates/*", "demo_data/**/*", "demo_data/gemini/tmp/*/.project_root"]
         assert yaml.safe_load((ROOT / "src" / "agentfare" / "data" / "pricing.yaml").read_text(encoding="utf-8"))["models"]

@@ -238,6 +238,8 @@ class Store:
         hint = ""
         if type(exc) is sqlite3.DatabaseError:  # not a database / malformed, as opposed to a path or permission problem
             hint = " (delete the file to start over: it is rebuilt from the agent logs that still exist)"
+        elif isinstance(exc, OSError):  # a folder that cannot be made or written (a read-only home): deleting nothing helps
+            hint = " (set AGENTFARE_HOME or --home to a folder you can write to; agentfare doctor checks the setup)"
         return StoreError(f"cannot use the database {self.path}: {exc}{hint}")
 
     def _usage_columns(self) -> set[str]:

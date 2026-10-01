@@ -1428,8 +1428,9 @@ def test_an_unknown_agent_with_data_under_the_others_says_so(command: str, named
 @pytest.mark.parametrize("command", COMMANDS)
 def test_setup_advice_only_when_the_database_is_empty(command: str, hand_config: Callable[..., Path]) -> None:
     out = lines(run(command, "--since", "2031-01-01", **hand(hand_config, [])))  # nothing stored at all
-    assert out[0] == "no sessions in this period (from 2031-01-01)" and len(out) == 2
+    assert out[0] == "no sessions in this period (from 2031-01-01)" and len(out) == 3  # the two setup hints, no date range
     assert "agentfare ingest" in out[1] and "agentfare config" in out[1] and "data exists" not in out[1]
+    assert "agentfare init" in out[2] and "agentfare doctor" in out[2] and "agentfare demo" in out[2] and "data exists" not in out[2]
     out = lines(run(command, "--since", "2031-01-01"))  # the fixtures hold three sessions: the data is there, the view missed it
     assert out == ["no sessions in this period (from 2031-01-01)", "data exists from 2026-09-28 to 2026-09-30"]
 

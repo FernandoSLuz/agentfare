@@ -3,7 +3,9 @@ pinned CI actions, and what the source distribution carries."""
 
 from __future__ import annotations
 
+import ast
 import re
+import sys
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -121,6 +123,47 @@ class TestWorkflow:
         doc = workflow()
         assert {"test", "oldest-dependencies"} <= set(doc["jobs"])
         assert all(isinstance(v, str) for v in doc["jobs"]["test"]["strategy"]["matrix"]["python-version"])
+
+
+class TestOldestPython:
+    """CI runs the suite on Python 3.11, and `pyproject.toml` promises it. Python 3.12 allows an f-string to reuse its own quote,
+    hold a backslash or span lines inside the braces, so code written on a newer Python can be a syntax error on 3.11 without
+    anything on that Python telling the author. `test_assets.py` loads `scripts/make_assets.py`, so one such line stops the whole
+    run on 3.11 at collection."""
+
+    def sources(self) -> list[Path]:
+        return sorted(p for folder in ("src", "scripts", "tests") for p in (ROOT / folder).rglob("*.py") if "__pycache__" not in p.parts)
+
+    @staticmethod
+    def fstring_problems(path: Path) -> list[str]:
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source, str(path), feature_version=(3, 11))
+        problems = []
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.JoinedStr):
+                continue
+            opening = re.match(r"[rRbBuUfF]*(\'\'\'|\"\"\"|\'|\")", ast.get_source_segment(source, node) or "")
+            if not opening:
+                continue
+            quote = opening[1]
+            for part in node.values:
+                if not isinstance(part, ast.FormattedValue):
+                    continue
+                expr = ast.get_source_segment(source, part.value) or ""
+                for reason, found in (("a backslash", "\\" in expr), (f"the quote {quote} again", quote in expr), ("a line break", "\n" in expr and len(quote) == 1)):
+                    if found:
+                        problems.append(f"{path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}:{part.lineno}: an f-string expression holds {reason}, which Python 3.11 rejects: {expr[:60]!r}")
+        return problems
+
+    def test_no_file_uses_an_f_string_form_that_python_3_11_rejects(self) -> None:
+        problems = [problem for path in self.sources() for problem in self.fstring_problems(path)]
+        assert problems == [], "\n".join(problems)
+
+    def test_the_check_finds_what_it_is_meant_to_find(self, tmp_path: Path) -> None:
+        bad = tmp_path / "bad.py"
+        bad.write_text("head = True\nx = f'<a{\" b\\\"c\" if head else \"\"}>'\ny = f\"{ {'k': 1}[\"k\"] }\"\n", encoding="utf-8")
+        found = self.fstring_problems(bad) if sys.version_info >= (3, 12) else ["not checkable here"]
+        assert found, "an f-string with a backslash or its own quote inside the braces should be reported"
 
 
 class TestSourceDistribution:

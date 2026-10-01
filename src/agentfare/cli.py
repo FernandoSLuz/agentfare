@@ -42,7 +42,7 @@ app = typer.Typer(
     help="Cost router for AI coding agents: price your Claude Code, Codex CLI and Gemini CLI sessions, "
     "and see where a cheaper model would have done the job. Local-first: no accounts, no cloud, no prompt storage.",
     no_args_is_help=True,
-    add_completion=False,
+    add_completion=True,  # `agentfare --show-completion` prints the script; nothing is installed unless you run --install-completion
     pretty_exceptions_enable=False,
 )
 
@@ -70,9 +70,9 @@ def get_state(ctx: typer.Context) -> AppState:
 
 
 # Every command lives in its own module and registers itself here.
-from .commands import advise, config as config_cmd, ingest, models, prices, report, run, sessions, summary  # noqa: E402
+from .commands import advise, config as config_cmd, demo, doctor, ingest, init, models, prices, report, run, sessions, summary  # noqa: E402
 
-for _mod in (ingest, config_cmd, summary, sessions, models, advise, run, report, prices):
+for _mod in (init, ingest, config_cmd, summary, sessions, models, advise, run, report, prices, doctor, demo):
     _mod.register(app)
 
 

@@ -19,8 +19,8 @@
 # Environment (all optional):
 #   VERIFY_PYTHONS   interpreters to try, instead of "python3.11 python3.12 python3.13 python3.14 python3"
 #   VERIFY_PIP_ARGS  extra arguments for `pip install` (e.g. "--no-index --find-links /path/to/wheels" to work offline)
-#   VERIFY_TMPDIR    where the temporary directory goes (default: /tmp, else $TMPDIR; keep the path short: a checkout under a
-#                    long path breaks one unrelated test, see the comment at WORK below)
+#   VERIFY_TMPDIR    where the temporary directory goes (default: /tmp, else $TMPDIR; keep the path short, under about 60
+#                    characters: with Chromium installed a long one fails two screenshot tests, see the comment at WORK below)
 #   KEEP_WORKDIR=1   keep the temporary directory (its path is printed) for debugging
 #
 # `pip install` needs a package index (PyPI by default): it is the only network use, and AgentFare itself uses none.
@@ -55,14 +55,14 @@ if [[ "$MODE" == worktree && ! -d "$SRC" ]]; then
 fi
 
 FROZEN_NOW="2026-09-30T12:00:00Z"
-COMMANDS="ingest config summary sessions models advise run report prices"
+COMMANDS="init ingest config summary sessions models advise run report prices doctor demo"
 CANDIDATES="${VERIFY_PYTHONS:-python3.11 python3.12 python3.13 python3.14 python3}"
 
-# The work directory is short on purpose (VERIFY_TMPDIR, else /tmp, else $TMPDIR): `agentfare prices` prints the absolute
-# path of its price table, and tests/test_prices_cmd.py::test_output_is_plain_text_that_fits_80_columns fails when that
-# line passes 80 columns, i.e. for a checkout whose path is longer than about 40 characters (macOS's /var/folders/...,
-# a deep home directory). That is a flaw of that test or of that output, not of this script: a short path keeps it from
-# hiding the other results.
+# The work directory is short on purpose (VERIFY_TMPDIR, else /tmp, else $TMPDIR). The temporary directory of pytest is
+# inside it, and when Chromium is installed tests/test_assets.py starts it there: Chromium keeps a socket in that
+# directory and stops with "Socket path too long" for a path of about 100 characters or more (a deep scratch directory,
+# macOS's /var/folders/...). That would fail two screenshot tests that have nothing to do with a fresh clone and could
+# hide the other results, so a short path keeps them out of the way.
 if [[ -n "${VERIFY_TMPDIR:-}" ]]; then BASE_TMP="$VERIFY_TMPDIR"; elif [[ -d /tmp && -w /tmp ]]; then BASE_TMP=/tmp; else BASE_TMP="${TMPDIR:-.}"; fi
 WORK="$(mktemp -d "${BASE_TMP%/}/afc.XXXXXX")"
 cleanup() {
@@ -177,7 +177,7 @@ verify() {  # verify NAME PATH TAG
   # agentfare --help lists every command
   if out="$("$venv/bin/agentfare" --help 2>&1)" && grep -q 'Usage' <<<"$out" \
      && missing="$(for c in $COMMANDS; do grep -q "$c" <<<"$out" || printf '%s ' "$c"; done)" && [[ -z "$missing" ]]; then
-    record PASS "$who" "agentfare --help" "lists the 9 commands"
+    record PASS "$who" "agentfare --help" "lists the 12 commands"
   else
     record FAIL "$who" "agentfare --help" "exit status or output wrong${missing:+; missing: $missing}"
     printf '%s\n' "${out:-}" | head -n 15 | sed 's/^/  | /'

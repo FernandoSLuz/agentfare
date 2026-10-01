@@ -51,7 +51,9 @@ agentfare = "agentfare.cli:_entry"
 where = ["src"]
 
 [tool.setuptools.package-data]
-agentfare = ["data/*.yaml", "templates/*"]
+# demo_data: the synthetic logs `agentfare demo` runs on. A glob does not match a file that starts with a dot, so the
+# .project_root files that Gemini CLI keeps next to its chats are named on their own.
+agentfare = ["data/*.yaml", "templates/*", "demo_data/**/*", "demo_data/gemini/tmp/*/.project_root"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

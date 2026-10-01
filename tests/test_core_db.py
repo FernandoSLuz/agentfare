@@ -262,6 +262,20 @@ class TestStoreErrors:
         finally:
             locked.chmod(0o700)
 
+    @pytest.mark.skipif(os.geteuid() == 0, reason="root can write anywhere")
+    def test_a_path_problem_says_where_else_to_keep_the_data(self, tmp_path: Path) -> None:
+        """A read-only home (a container, a CI job) is not fixed by deleting anything: the message names the two ways to move the folder."""
+        locked = tmp_path / "locked"
+        locked.mkdir(mode=0o500)
+        try:
+            with pytest.raises(StoreError, match="cannot use the database") as caught:
+                Store(locked / "sub" / "fare.db")
+            message = str(caught.value)
+            assert "AGENTFARE_HOME" in message and "--home" in message and "\n" not in message, message
+            assert "delete the file" not in message
+        finally:
+            locked.chmod(0o700)
+
     @pytest.mark.parametrize("junk", [b"this is not a database at all, just some text\n" * 20, b"\x00\xff\xfe" * 500])
     def test_a_corrupt_file_says_it_can_be_deleted(self, tmp_path: Path, junk: bytes) -> None:
         db = tmp_path / "fare.db"

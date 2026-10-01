@@ -1,0 +1,7 @@
+# Config for the synthetic demo logs that `agentfare demo` runs on. Relative paths are resolved against this file's directory.
+#   AGENTFARE_HOME=$(mktemp -d) AGENTFARE_NOW=2026-09-30T18:00:00Z agentfare --config config.yaml summary
+timezone: UTC
+sources:
+  claude: [claude/projects]
+  codex: [codex/sessions]
+  gemini: [gemini/tmp]
