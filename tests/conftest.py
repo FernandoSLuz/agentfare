@@ -8,6 +8,14 @@ GEMINI_CLI_HOME point).
 
 from __future__ import annotations
 
+import os
+
+# Typer decides at import time to force colour (and its own width) when it runs inside GitHub Actions or when one of these
+# variables is set, and the help and usage errors the tests compare as plain text would then carry ANSI codes. This runs
+# before anything imports typer, so a test run looks the same on a laptop and in CI.
+for _variable in ("GITHUB_ACTIONS", "FORCE_COLOR", "PY_COLORS", "TERMINAL_WIDTH"):
+    os.environ.pop(_variable, None)
+
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
