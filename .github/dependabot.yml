@@ -1,0 +1,17 @@
+# Weekly and quiet: at most two open pull requests per ecosystem.
+#
+# Raising a dependency floor in pyproject.toml is a promise to users, so raise it together with constraints-min.txt
+# (tests/test_packaging.py fails when they disagree). Every action in .github/workflows is pinned to a full commit SHA with
+# its release in a comment, and Dependabot updates both.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2

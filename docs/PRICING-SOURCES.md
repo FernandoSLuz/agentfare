@@ -309,8 +309,12 @@ that is `unverified`, put a full copy in your data directory as `~/.agentfare/pr
 
   ```sh
   mkdir -p ~/.agentfare
-  cp "$(python -c 'import agentfare.pricing as p; print(p.builtin_path())')" ~/.agentfare/pricing.yaml
+  table=$(agentfare prices --json | python3 -c 'import json, sys; print(json.load(sys.stdin)["pricing"]["path"])')
+  cp "$table" ~/.agentfare/pricing.yaml
   ```
+
+  (`agentfare prices --json` names the file in use under `pricing.path`. This works for every install, also for
+  uv and pipx, whose environments are not the `python` on your PATH.)
 
   (In a source checkout, `cp pricing.yaml ~/.agentfare/pricing.yaml` does the same.)
   `agentfare prices --refresh --write` also creates the file from the built-in table, but `--refresh` is the

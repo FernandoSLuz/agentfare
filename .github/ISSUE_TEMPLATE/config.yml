@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Troubleshooting (README)
+    url: https://github.com/FernandoSLuz/agentfare#faq-and-troubleshooting
+    about: Most setup problems, empty results and warnings are answered there. Run `agentfare doctor` first.
+  - name: Report a security vulnerability
+    url: https://github.com/FernandoSLuz/agentfare/security/advisories/new
+    about: Report it privately. Do not open a public issue for a vulnerability.

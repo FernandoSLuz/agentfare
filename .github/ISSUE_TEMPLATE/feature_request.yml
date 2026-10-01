@@ -1,0 +1,51 @@
+name: Feature request
+description: Suggest a change or an addition
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. AgentFare keeps a few rules that a feature has to respect: it is local-first and uses no network except `agentfare prices --refresh`, it never stores or prints prompts, replies or file contents, money is integer micro-cents, and a model without a verified price stays out of dollar totals. The [architecture notes](https://github.com/FernandoSLuz/agentfare/blob/main/docs/ARCHITECTURE.md#invariants) explain why.
+
+        Support for another agent needs a parser. [docs/LOG-FORMATS.md](https://github.com/FernandoSLuz/agentfare/blob/main/docs/LOG-FORMATS.md#adding-an-agent) says what that takes. A new model price needs a link to the provider's own pricing page.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: The command, flag or output you have in mind. An example of the output you want is the clearest way to say it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do today
+      description: A workaround, another tool, or a config setting that comes close.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - A new agent or log format
+        - Prices and models
+        - advise (looking back)
+        - run (looking ahead)
+        - Reports
+        - Setup (init, doctor, install)
+        - Documentation
+        - Other
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Project rules
+      options:
+        - label: The idea needs no network call except `agentfare prices --refresh` and stores no prompt, reply or file content.
+          required: true

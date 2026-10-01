@@ -1,4 +1,4 @@
-"""Drift guard for the public documentation: README.md, CONTRIBUTING.md and docs/.
+"""Drift guard for the public documentation: README.md, CONTRIBUTING.md, the community files and docs/.
 
 Everything the README shows that can be computed is computed here, so a change to the output, the price table or the
 config defaults fails a test until the README follows:
@@ -14,7 +14,8 @@ config defaults fails a test until the README follows:
   the price table and ``advise --json``, so one edited occurrence fails.
 * Commands. Every ``agentfare ...`` line in a ``sh`` block must be a real command with real flags, and the README must
   show every command the app registers.
-* Links. Relative links in README.md, CONTRIBUTING.md and docs/*.md must point at files (and headings) that exist.
+* Links. Relative links in README.md, README.pt-BR.md, CONTRIBUTING.md, the community files and docs/*.md must point at files (and
+  headings) that exist. The Portuguese README has its own structural test, tests/test_readme_pt.py.
 * The demo script runs (also without `agentfare` on PATH), is deterministic, and prints each command before its output.
 * No line of a document ends in spaces.
 
@@ -61,13 +62,15 @@ from agentfare.router import EXTRA_KEYWORDS, MEDIUM_POINTS
 
 ROOT = Path(__file__).resolve().parent.parent
 README = ROOT / "README.md"
+README_PT = ROOT / "README.pt-BR.md"
+COMMUNITY_DOCS = [ROOT / "CHANGELOG.md", ROOT / "SECURITY.md", ROOT / "CODE_OF_CONDUCT.md"]
 FIXTURES = ROOT / "tests" / "fixtures"
 DEMO_SCRIPT = ROOT / "scripts" / "demo.sh"
 DEMO_TAPE = ROOT / "demo.tape"
 COMMAND_DOCS = [
-    README, ROOT / "CONTRIBUTING.md", ROOT / "docs" / "DEMO.md", ROOT / "docs" / "LOG-FORMATS.md", ROOT / "docs" / "ARCHITECTURE.md",
+    README, README_PT, ROOT / "CONTRIBUTING.md", *COMMUNITY_DOCS, ROOT / "docs" / "DEMO.md", ROOT / "docs" / "LOG-FORMATS.md", ROOT / "docs" / "ARCHITECTURE.md",
 ]  # fmt: skip
-LINKED_DOCS = [README, ROOT / "CONTRIBUTING.md", *sorted((ROOT / "docs").glob("*.md"))]
+LINKED_DOCS = [README, README_PT, ROOT / "CONTRIBUTING.md", *COMMUNITY_DOCS, *sorted((ROOT / "docs").glob("*.md"))]
 NOW = "2026-09-30T12:00:00Z"
 COLUMNS = "100"
 
@@ -463,9 +466,11 @@ def test_the_price_table_lists_every_model_of_pricing_yaml() -> None:
 
 
 def pricing_prose() -> str:
-    """The text of the "Pricing sources" section without its generated table: where the README explains the prices."""
+    """The text of the "Pricing sources" section without its generated table: where the README explains the prices. The
+    section runs to the next heading of its own level."""
     text = readme_text()
-    start, end = text.index("\n## Pricing sources\n"), text.index("\n## Log formats\n")
+    start = text.index("\n## Pricing sources\n")
+    end = text.index("\n## ", start + 1)
     return GENERATED.sub("", text[start:end])
 
 
@@ -735,6 +740,28 @@ def test_the_vhs_tape_records_the_demo_script() -> None:
     assert closing, "the tape should wait for the end of the demo"
     assert re.search(closing[1], DEMO_SCRIPT.read_text(encoding="utf-8")), "the tape waits for text the demo never prints"
     assert os.access(DEMO_SCRIPT, os.X_OK), "scripts/demo.sh should be executable"
+
+
+# ---- claims a first reader can check ---------------------------------------------------------------------------------
+def test_what_the_readme_says_about_the_size_of_the_clone_is_true() -> None:
+    """`run` counts the files under the directory it starts in, so the README tells people to run it from a small one: the clone has
+    more files than the `repo_files` rule needs to add a point, and it must keep saying so only while that is true."""
+    from agentfare.router import count_files
+
+    medium = DEFAULT_CONFIG["router"]["run"]["repo_files"]["medium"]
+    assert count_files(ROOT, medium) >= medium, f"the clone has fewer than {medium} files: the README (both languages) says it has more"
+    for path in (README, README_PT):
+        text = path.read_text(encoding="utf-8")
+        assert not re.search(r"fewer than 200 files|menos de 200 arquivos", text), f"{path.name} says the clone is small enough for `run`"
+        assert re.search(r"more than 200 files|mais de 200 arquivos", text), f"{path.name} should tell people to run `run` from a small directory"
+
+
+@pytest.mark.parametrize("path", [README, README_PT, ROOT / "docs" / "PRICING-SOURCES.md"], ids=lambda p: p.name)
+def test_no_recipe_needs_agentfare_to_be_importable_from_the_python_on_path(path: Path) -> None:
+    """uv and pipx keep AgentFare in an environment of its own, so `python -c 'import agentfare...'` fails after the install the
+    README recommends (and `python` does not exist on a stock macOS or Debian). A recipe asks the `agentfare` command instead."""
+    text = path.read_text(encoding="utf-8")
+    assert not re.search(r"python3? -c ['\"]\s*import agentfare", text), f"{path.name}: use `agentfare prices --json` rather than importing the package"
 
 
 # ---- maintenance entry point --------------------------------------------------------------------------------------
