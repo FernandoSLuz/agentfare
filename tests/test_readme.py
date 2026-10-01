@@ -83,6 +83,16 @@ def pinned_env(home: Path) -> dict[str, str]:
         HOME=str(home), AGENTFARE_HOME=str(home / "agentfare"), AGENTFARE_NOW=NOW, AGENTFARE_CONFIG=str(FIXTURES / "config.yaml"),
         COLUMNS=COLUMNS, NO_COLOR="1", TERM="dumb", PYTHONIOENCODING="utf-8", PYTHONUTF8="1",
     )  # fmt: skip
+    # The README shows what `run` prints on a machine that has the agents installed (it warns when the program is missing), and a CI
+    # runner has none of them: stand-ins that are never started (`--dry-run`) make the panel the same everywhere.
+    stubs = home / "agent-stubs"
+    stubs.mkdir(parents=True, exist_ok=True)
+    for name in ("claude", "codex", "gemini"):
+        stub = stubs / name
+        if not stub.exists():
+            stub.write_text("#!/bin/sh\nexit 0\n")
+            stub.chmod(0o755)
+    env["PATH"] = os.pathsep.join([str(stubs), env.get("PATH", "")])
     return env
 
 

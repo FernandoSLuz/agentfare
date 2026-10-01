@@ -596,9 +596,9 @@ NAMED_SHELL = {"_TYPER_COMPLETE_TEST_DISABLE_SHELL_DETECTION": "1"}
 
 class TestCompletion:
     def test_show_completion_prints_the_script_without_installing_anything(self) -> None:
-        result = invoke("--show-completion", config=None)  # the shell is detected, or bash when it cannot be
-        assert result.exit_code == 0, result.output
-        assert "_AGENTFARE_COMPLETE=complete_" in result.stdout and "agentfare" in result.stdout
+        done = self.agentfare("--show-completion", "bash")  # a named shell: with none given Typer detects the parent shell, which a CI runner may not have
+        assert done.returncode == 0, done.stderr
+        assert "_AGENTFARE_COMPLETE=complete_" in done.stdout and "agentfare" in done.stdout
         assert list(Path(os.environ["HOME"]).iterdir()) == []  # nothing written anywhere
 
     @staticmethod

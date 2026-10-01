@@ -499,7 +499,11 @@ def _resolve_system_tz(tz_env: str, localtime: Path) -> tuple[tzinfo, str]:
             return ZoneInfo.from_file(fh), ""
     except (OSError, ValueError, KeyError):  # an unreadable POSIX-style TZ string, no zone file, broken zone file
         unread = f"TZ={tz_env!r}" if tz_env.strip() else str(localtime) if localtime.exists() else ""
-        return datetime.now().astimezone().tzinfo or timezone.utc, unread
+        try:
+            fallback = datetime.now().astimezone().tzinfo or timezone.utc
+        except (ValueError, OverflowError, OSError):  # a TZ the C library cannot parse can yield an offset datetime refuses (macOS: -30 hours)
+            fallback = timezone.utc
+        return fallback, unread
 
 
 def resolve_tz(name: str) -> tzinfo:

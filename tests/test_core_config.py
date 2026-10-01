@@ -414,6 +414,25 @@ class TestResolveTz:
         monkeypatch.setenv("TZ", f":{tmp_path / 'missing'}")
         assert resolve_tz("local").utcoffset(datetime(2026, 9, 30, 12)) is not None
 
+    def test_a_tz_the_system_cannot_turn_into_an_offset_falls_back_to_utc(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """macOS reports an offset of -30 hours for a garbage TZ and ``astimezone()`` raises ValueError: the CLI must not crash."""
+
+        class Broken:
+            @staticmethod
+            def now() -> "Broken":
+                return Broken()
+
+            def astimezone(self) -> None:
+                raise ValueError("offset must be a timedelta strictly between -timedelta(hours=24) and timedelta(hours=24)")
+
+        config_module._resolve_system_tz.cache_clear()
+        monkeypatch.setattr(config_module, "datetime", Broken)
+        try:
+            zone, unread = config_module._resolve_system_tz("[bold]x", Path("/nonexistent/localtime"))
+        finally:
+            config_module._resolve_system_tz.cache_clear()
+        assert zone is timezone.utc and "TZ=" in unread
+
     def test_local_falls_back_to_the_current_offset_when_nothing_is_known(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
