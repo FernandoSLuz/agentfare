@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 540" width="1280" height="540" role="img" aria-label="How AgentFare works: the session logs of Claude Code, Codex CLI and Gemini CLI are read by parsers into a local SQLite database of token counts, priced with a YAML table and shown by summary, advise, run and report. Nothing leaves your machine.">
+<title>How AgentFare works</title>
+<style>.bg{fill:#0d1117}.frame{fill:none;stroke:#3fb950;stroke-width:2;stroke-dasharray:10 8;opacity:.75}.box{fill:#161b22;stroke:#30363d;stroke-width:1.5}.title{font:700 20px Inter, 'Adwaita Sans', 'Noto Sans', 'Liberation Sans', Helvetica, Arial, sans-serif;fill:#fff}.sub{font:500 15px Inter, 'Adwaita Sans', 'Noto Sans', 'Liberation Sans', Helvetica, Arial, sans-serif;fill:#a8b3bf}.arrow{stroke:#6e7681;stroke-width:2;fill:none;stroke-linejoin:round}.cap{font:700 13px Inter, 'Adwaita Sans', 'Noto Sans', 'Liberation Sans', Helvetica, Arial, sans-serif;fill:#8b949e;letter-spacing:.09em}.safe{font:700 19px Inter, 'Adwaita Sans', 'Noto Sans', 'Liberation Sans', Helvetica, Arial, sans-serif;fill:#3fb950}.note{font:500 15px Inter, 'Adwaita Sans', 'Noto Sans', 'Liberation Sans', Helvetica, Arial, sans-serif;fill:#8b949e}.cmd{font:700 17px 'JetBrains Mono', 'DejaVu Sans Mono', 'Liberation Mono', monospace;fill:#fff}</style>
+<defs><marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#6e7681"/></marker></defs>
+<rect class="bg" width="1280" height="540" rx="24"/>
+<rect class="frame" x="24" y="24" width="1232" height="492" rx="22"/>
+<text x="56" y="66" class="safe">Nothing leaves your machine</text>
+<text x="1224" y="66" text-anchor="end" class="note">The only network call is the optional prices --refresh.</text>
+<text x="56" y="108" class="cap">YOUR AGENTS' LOGS</text><text x="360" y="108" class="cap">PARSERS</text><text x="582" y="108" class="cap">LOCAL DATABASE</text><text x="846" y="108" class="cap">PRICES AND RULES</text><text x="1040" y="108" class="cap">COMMANDS</text>
+<rect x="56" y="129" width="252" height="98" rx="14" class="box"/><rect x="56" y="141" width="5" height="74" rx="2.5" fill="#d97757"/><text x="78" y="163" class="title">Claude Code</text><text x="78" y="187" class="sub">~/.claude/projects</text><text x="78" y="209" class="sub">session logs (JSONL)</text>
+<path d="M308 178 L334 178" class="arrow"/>
+<rect x="56" y="251" width="252" height="98" rx="14" class="box"/><rect x="56" y="263" width="5" height="74" rx="2.5" fill="#10a37f"/><text x="78" y="285" class="title">Codex CLI</text><text x="78" y="309" class="sub">~/.codex/sessions</text><text x="78" y="331" class="sub">session logs (JSONL)</text>
+<path d="M308 300 L334 300" class="arrow"/>
+<rect x="56" y="373" width="252" height="98" rx="14" class="box"/><rect x="56" y="385" width="5" height="74" rx="2.5" fill="#4285f4"/><text x="78" y="407" class="title">Gemini CLI</text><text x="78" y="431" class="sub">~/.gemini/tmp</text><text x="78" y="453" class="sub">session logs (JSONL)</text>
+<path d="M308 422 L334 422" class="arrow"/>
+<path d="M334 178 L334 422" class="arrow"/>
+<path d="M334 300 L360 300" class="arrow" marker-end="url(#head)"/>
+<rect x="360" y="230" width="182" height="140" rx="14" class="box"/><rect x="360" y="242" width="5" height="116" rx="2.5" fill="#3987e5"/><text x="382" y="264" class="title">Parsers</text><text x="382" y="288" class="sub">one per agent</text><text x="382" y="310" class="sub">tokens in 5 buckets</text><text x="382" y="332" class="sub">no text kept</text>
+<path d="M542 300 L582 300" class="arrow" marker-end="url(#head)"/>
+<rect x="582" y="212" width="222" height="176" rx="14" class="box"/><rect x="582" y="224" width="5" height="152" rx="2.5" fill="#3987e5"/><text x="604" y="246" class="title">Local SQLite</text><text x="604" y="270" class="sub">ids, times, counts</text><text x="604" y="292" class="sub">tokens per model</text><text x="604" y="314" class="sub">per 15-minute slot</text><text x="604" y="336" class="sub">no prompts, replies</text><text x="604" y="358" class="sub">or file contents</text>
+<path d="M804 300 L846 300" class="arrow" marker-end="url(#head)"/>
+<rect x="846" y="230" width="168" height="140" rx="14" class="box"/><rect x="846" y="242" width="5" height="116" rx="2.5" fill="#fab219"/><text x="868" y="264" class="title">Prices</text><text x="868" y="288" class="sub">pricing.yaml</text><text x="868" y="310" class="sub">unverified models</text><text x="868" y="332" class="sub">left out, named</text>
+<path d="M1014 300 L1024 300" class="arrow"/>
+<path d="M1024 162 L1024 438" class="arrow"/>
+<path d="M1024 162 L1040 162" class="arrow" marker-end="url(#head)"/>
+<rect x="1040" y="125" width="192" height="74" rx="14" class="box"/><rect x="1040" y="137" width="5" height="50" rx="2.5" fill="#199e70"/><text x="1062" y="157" class="cmd">summary</text><text x="1062" y="180" class="sub">spend by model, day</text>
+<path d="M1024 254 L1040 254" class="arrow" marker-end="url(#head)"/>
+<rect x="1040" y="217" width="192" height="74" rx="14" class="box"/><rect x="1040" y="229" width="5" height="50" rx="2.5" fill="#199e70"/><text x="1062" y="249" class="cmd">advise</text><text x="1062" y="272" class="sub">where cheaper works</text>
+<path d="M1024 346 L1040 346" class="arrow" marker-end="url(#head)"/>
+<rect x="1040" y="309" width="192" height="74" rx="14" class="box"/><rect x="1040" y="321" width="5" height="50" rx="2.5" fill="#199e70"/><text x="1062" y="341" class="cmd">run</text><text x="1062" y="364" class="sub">pick a model first</text>
+<path d="M1024 438 L1040 438" class="arrow" marker-end="url(#head)"/>
+<rect x="1040" y="401" width="192" height="74" rx="14" class="box"/><rect x="1040" y="413" width="5" height="50" rx="2.5" fill="#199e70"/><text x="1062" y="433" class="cmd">report</text><text x="1062" y="456" class="sub">markdown or HTML</text>
+</svg>

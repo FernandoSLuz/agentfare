@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
-# Fixture demo: runs AgentFare on the synthetic sample logs in tests/fixtures and prints each command before its output.
+# Demo tour: runs AgentFare on synthetic logs and prints each command before its output.
 #
-#   bash scripts/demo.sh                   # live demo in a terminal
+#   bash scripts/demo.sh                   # live demo in a terminal, on the three sample sessions of tests/fixtures
+#   DEMO_SET=demo bash scripts/demo.sh     # the same kind of tour on the 45 sessions of `agentfare demo`
 #   DEMO_PAUSE=0 bash scripts/demo.sh      # no pauses (this is what the tests use)
-#   vhs demo.tape                          # recorded as a GIF, see docs/DEMO.md
+#   vhs demo.tape                          # recorded as a GIF with VHS, see docs/DEMO.md
 #
 # Nothing here reads your real agent logs or writes to ~/.agentfare: the data directory is a temporary one, "now" is
-# frozen and the config is tests/fixtures/config.yaml, so the numbers are the same on every run and every machine.
+# frozen and the config belongs to the synthetic logs, so the numbers are the same on every run and every machine.
+# The GIF in the README is not recorded from this script: scripts/make_assets.py draws it from the same demo data.
 #
 # Settings (environment):
+#   DEMO_SET       fixtures (default): the three sessions of tests/fixtures, the sample the README shows
+#                  demo: the packaged demo data (src/agentfare/demo_data), the story of docs/images/demo.gif
 #   DEMO_PAUSE     seconds to wait after each step (default 2 in a terminal, 0 otherwise)
 #   DEMO_CLEAR     1 clears the screen before each step (the VHS tape sets it), default 0
 #   DEMO_TYPE      1 types each command out slowly, 0 prints it at once (default 1 in a terminal, 0 otherwise)
@@ -38,10 +42,33 @@ fi
 export COLUMNS
 
 AGENTFARE_HOME="$(mktemp -d)"
-trap 'rm -rf "$AGENTFARE_HOME"' EXIT
+scratch="$AGENTFARE_HOME"
+trap 'rm -rf $scratch' EXIT
 export AGENTFARE_HOME
-export AGENTFARE_NOW=2026-09-30T12:00:00Z
-export AGENTFARE_CONFIG="$root/tests/fixtures/config.yaml"
+
+demo_set="${DEMO_SET:-fixtures}"
+case "$demo_set" in
+  fixtures)
+    export AGENTFARE_NOW=2026-09-30T12:00:00Z
+    export AGENTFARE_CONFIG="$root/tests/fixtures/config.yaml"
+    workdir="$root/tests/fixtures"
+    ;;
+  demo)
+    export AGENTFARE_NOW=2026-09-30T18:00:00Z
+    export AGENTFARE_CONFIG="$root/src/agentfare/demo_data/config.yaml"
+    # an empty directory, so that `agentfare run` counts no files, and a stand-in for the agent it looks for on PATH
+    workdir="$(mktemp -d)"
+    mkdir "$workdir/bin"
+    printf '#!/bin/sh\nexit 0\n' > "$workdir/bin/claude"
+    chmod +x "$workdir/bin/claude"
+    scratch="$scratch $workdir"
+    export PATH="$workdir/bin:$PATH"
+    ;;
+  *)
+    echo "DEMO_SET must be fixtures or demo, not $demo_set" >&2
+    exit 2
+    ;;
+esac
 
 # `agentfare` below is this function, so the command shown on screen is the command that runs.
 agentfare() {
@@ -60,7 +87,7 @@ if ! agentfare --version >/dev/null 2>&1; then
 fi
 
 # `agentfare run` counts the files of the current directory: a small one keeps the sample picks the same everywhere.
-cd "$root/tests/fixtures"
+cd "$workdir"
 
 show_typed() {
   local text="$1" i
@@ -86,6 +113,22 @@ step() {
   printf '\n'
   sleep "$pause"
 }
+
+# The tour of the packaged demo data: what docs/images/demo.gif shows. The output is cut with sed, which reads everything it is
+# given, so that no command in the pipeline is stopped by a closed pipe.
+tour_demo() {
+  agentfare ingest > /dev/null 2>&1  # the first scan stays out of the recording
+  step 'agentfare summary | sed -n 1,30p'
+  step 'agentfare advise --limit 3 | sed -n 1,29p'
+  step 'agentfare run --dry-run -- claude -p "refactor the auth module and migrate the database"'
+  step 'agentfare report | fold -s -w 100 | sed -n 1,24p'
+}
+
+if [ "$demo_set" = demo ]; then
+  tour_demo
+  echo "That was the synthetic demo data. Point AgentFare at your own logs with: agentfare summary"
+  exit 0
+fi
 
 step 'agentfare summary'
 step 'agentfare sessions'
